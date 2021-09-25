@@ -1,10 +1,9 @@
 from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
 import pandas as pd
-import ast
+
 app = Flask(__name__)
 api = Api(app)
- #enter postman and use get request for  http://127.0.0.1:5000/users
  
 class Data(Resource):
   def get(self):
