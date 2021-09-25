@@ -7,16 +7,18 @@ class Whois:
 
     def choose_service(self):
         if re.findall(r'.rs', self.url):
-            self.process_serbian()
+            return self.process_serbian()
         
-
     def process_serbian(self):
-        service = 'https://www.rnids.rs/en/whois'
-        
+        service = 'whois.rnids.rs'
+        command = 'whois'
+        p = subprocess.Popen([command,'-h', service, self.url], stdout= subprocess.PIPE, text = True)
+        output, err = p.communicate()
+        return output
 
-url = "https://donosimo.rs/"
 
 
 if __name__ == '__main__':
-    url = "https://donosimo.rs/"
-    
+    url = "donosimo.rs"
+    whois = Whois(url)
+    print(whois.choose_service())
