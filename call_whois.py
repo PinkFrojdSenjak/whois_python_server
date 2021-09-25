@@ -1,10 +1,12 @@
 import subprocess
 import re
+from variable_synonims import get_synonims
 
 class Whois:
     def __init__(self, url) -> None:
         self.url = url
         self.command = 'whois'
+        self._irrelevant_keys = ['notice', 'terms of use']
 
     def _process(self, args: list) -> str:
         p = subprocess.Popen(args, stdout= subprocess.PIPE, text = True)
@@ -38,6 +40,8 @@ class Whois:
 
         elif re.findall(r'.se', self.url):
             return self.process_se()
+        else:
+            return None
 
     def process_serbian(self) -> str:
         service = 'whois.rnids.rs'
@@ -81,7 +85,27 @@ class Whois:
         val = val.lstrip().rstrip()
         return key, val
 
-   
+    def _clean_dict_with_synonims(self, dic: dict) -> dict:
+        """
+        This method takes the unsorted dictionary and check to see if there are known synonims 
+        for some of the most important fields and also places first 
+        """
+        clean_dic = {}
+        synonims = get_synonims()
+        non_synonim_fields = {}
+        for key in dic.keys():
+            found_synonim = False
+            for important_field in synonims.keys():
+                if key.lower() in synonims[important_field]:
+                    clean_dic[important_field] = dic[key]
+                    found_synonim = True
+                    break
+            if not found_synonim: 
+                non_synonim_fields[key] = dic[key]
+
+        for key in non_synonim_fields.keys():
+            clean_dic[key] = non_synonim_fields[key]
+        return clean_dic
 
     def extract_dict(self, s: str) -> dict:
         s = s.replace(':\n ', ': ')
@@ -100,13 +124,20 @@ class Whois:
             if ': ' in line:
                 key, val = self._get_dict(line) 
                 # only valid keys are maximum 3 words 
-                if len(key.split()) <= 3:               
+                if len(key.split()) <= 3 and key.lower() not in self._irrelevant_keys:
                     dic[key] = val
+            
                            
-        return dic
+        return self._clean_dict_with_synonims(dic)
+
+    def get_data(self) -> dict:
+        whois_return_string = self.choose_service()
+        if whois_return_string is None:
+            return None
+        return self.extract_dict(whois_return_string)
 
 if __name__ == '__main__':
-    url = 'facebook.com'
+    url = 'aaa'
     whois = Whois(url)
     res = whois.choose_service()
     dictionary = whois.extract_dict(res)
