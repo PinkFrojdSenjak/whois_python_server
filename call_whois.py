@@ -75,12 +75,28 @@ class Whois:
         service = 'whois.iis.se'
         return self._process([self.command, '-h', service, self.url])
 
+    def _get_dict_entries(self, line):
+        key, val = line.split(': ')
+        key = key.lstrip().rstrip()
+        val = val.lstrip().rstrip()
+        return key, val
 
-
+    def extract_dict(self, s: str) -> dict:
+        lines = s.splitlines()
+        dic = {}
+        for line in lines:
+            if ': ' in line:
+                key, val = self._get_dict_entries(line)                
+                dic[key] = val
+        return dic
+        
 if __name__ == '__main__':
-    url = 'rts.rs'
+    url = 'bbc.co.uk'
     whois = Whois(url)
     res = whois.choose_service()
-    f = open('temp.txt', 'w')
+    dictionary = whois.extract_dict(res)
+    print(dictionary)
+
+    f = open('uk.txt', 'w')
     f.write(res)
     f.close()
