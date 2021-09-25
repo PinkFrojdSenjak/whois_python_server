@@ -75,28 +75,43 @@ class Whois:
         service = 'whois.iis.se'
         return self._process([self.command, '-h', service, self.url])
 
-    def _get_dict_entries(self, line):
-        key, val = line.split(': ')
+    def _get_dict(self, line: str) -> tuple:
+        key, val = line.split(': ', maxsplit = 1)
         key = key.lstrip().rstrip()
         val = val.lstrip().rstrip()
         return key, val
 
+   
+
     def extract_dict(self, s: str) -> dict:
+        s = s.replace(':\n ', ': ')
+        s = s.replace('Relevant dates:', '')
         lines = s.splitlines()
-        dic = {}
+        # remove empty lines and lines that start with %
+        temp = []
         for line in lines:
+            if line and line[0] != '%':
+                temp.append(line)
+        lines = temp
+        temp = []
+        # get only relevant data
+        dic = {}
+        for i, line in enumerate(lines):
             if ': ' in line:
-                key, val = self._get_dict_entries(line)                
-                dic[key] = val
+                key, val = self._get_dict(line) 
+                # only valid keys are maximum 3 words 
+                if len(key.split()) <= 3:               
+                    dic[key] = val
+                           
         return dic
-        
+
 if __name__ == '__main__':
-    url = 'bbc.co.uk'
+    url = 'facebook.com'
     whois = Whois(url)
     res = whois.choose_service()
     dictionary = whois.extract_dict(res)
     print(dictionary)
 
-    f = open('uk.txt', 'w')
+    f = open('com.txt', 'w')
     f.write(res)
     f.close()

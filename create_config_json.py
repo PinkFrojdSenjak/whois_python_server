@@ -1,0 +1,5 @@
+import json
+
+synonims = {
+    ''
+}

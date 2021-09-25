@@ -9,9 +9,9 @@ class Data(Resource):
   def get(self):
     url = request.args.get('url')
     return {
-      "sample":[1,2,3],
-      "data":[4,3,5],
-      'url':url
+      "naziv":url,
+      "registar":'nestp randpm',
+      
     }, 200
 
 api.add_resource(Data, '/data')
