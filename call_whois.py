@@ -15,67 +15,67 @@ class Whois:
 
     def choose_service(self) -> str:
         if re.findall(r'.rs', self.url) or re.findall(r'.срб', self.url):
-            return self.process_serbian()
+            return self._process_serbian()
 
         elif re.findall(r'.ru', self.url) or re.findall(r'.рф', self.url):
-            return self.process_russian()
+            return self._process_russian()
 
         elif re.findall(r'.mk', self.url) or re.findall(r'.мкд', self.url):
-            return self.process_makedonian()
+            return self._process_makedonian()
 
         elif re.findall(r'.org', self.url) or re.findall(r'.opr', self.url):
-            return self.process_org_opr()
+            return self._process_org_opr()
 
         elif re.findall(r'.com', self.url):
-            return self.process_com()
+            return self._process_com()
 
         elif re.findall(r'.ком', self.url): 
-            return self.process_kom()
+            return self._process_kom()
         
         elif re.findall(r'.net', self.url):
-            return self.process_net()
+            return self._process_net()
 
         elif re.findall(r'.uk', self.url):
-            return self.process_uk()
+            return self._process_uk()
 
         elif re.findall(r'.se', self.url):
-            return self.process_se()
+            return self._process_se()
         else:
             return None
 
-    def process_serbian(self) -> str:
+    def _process_serbian(self) -> str:
         service = 'whois.rnids.rs'
         return self._process([self.command, '-h', service, self.url])
 
-    def process_russian(self) -> str:
+    def _process_russian(self) -> str:
         service = 'whois.tcinet.ru'
         return self._process([self.command, '-h', service, self.url])
     
-    def process_makedonian(self) -> str:
+    def _process_makedonian(self) -> str:
         service = 'whois.marnet.mk'
         return self._process([self.command, '-h', service, self.url])
 
-    def process_org_opr(self) -> str:
+    def _process_org_opr(self) -> str:
         service = 'whois.publicinterestregistry.net'
         return self._process([self.command, '-h', service, self.url])
 
-    def process_com(self) -> str:
+    def _process_com(self) -> str:
         service = 'whois.verisign-grs.com'
         return self._process([self.command, '-h', service, self.url])
 
-    def process_kom(self) -> str:
+    def _process_kom(self) -> str:
         service = 'whois.nic.ком'
         return self._process([self.command, '-h', service, self.url])
 
-    def process_net(self) -> str:
+    def _process_net(self) -> str:
         service = 'whois.verisign-grs.com'
         return self._process([self.command, '-h', service, self.url])
 
-    def process_uk(self) -> str:
+    def _process_uk(self) -> str:
         service = 'whois.nic.uk'
         return self._process([self.command, '-h', service, self.url])
 
-    def process_se(self) -> str:
+    def _process_se(self) -> str:
         service = 'whois.iis.se'
         return self._process([self.command, '-h', service, self.url])
 
@@ -130,17 +130,28 @@ class Whois:
                            
         return self._clean_dict_with_synonims(dic)
 
+    def _no_match(self, s: str) -> bool:
+        if 'no match' in s.lower():
+            return True
+        return False
+
     def get_data(self) -> dict:
+        """
+        This method returns all Whois data for the given url
+        """
         whois_return_string = self.choose_service()
         if whois_return_string is None:
+            return None
+        if self._no_match(whois_return_string):
             return None
         return self.extract_dict(whois_return_string)
 
 if __name__ == '__main__':
-    url = 'aaa'
+    url = 'google.uk'
     whois = Whois(url)
     res = whois.choose_service()
     dictionary = whois.extract_dict(res)
+    temp = whois.get_data()
     print(dictionary)
 
     f = open('com.txt', 'w')
