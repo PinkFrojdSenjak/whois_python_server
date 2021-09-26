@@ -1,6 +1,9 @@
 import sqlite3
 import string
 import random
+import requests
+import json
+
 def id_generator(size=20, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
@@ -30,7 +33,7 @@ class Notifications:
         """, (random_string, url, token))
         con.commit()
         return True
-
+    
     def _insert_email(self, url, email):
         curr.execute(
             '''SELECT 
@@ -49,8 +52,29 @@ class Notifications:
             INSERT INTO Subscriptions(id,url,email)
             VALUES (?,?,?)
         """, (random_string, url, email))
+        post_data = {
+            "salje": {
+                "adresa": "whoishakaton@geasoft.net",
+                "ime": "Ko.Je Domen Alarm"
+            },
+            "prima": [{
+                "adresa": email,
+                "ime": "" 
+            }],
+            "naslov": f"Alarm za domen {url} uspesno aktiviran",
+            "sadrzaj": ""
+            }
+        #if t == 0:
+        with open('email2.html', 'r') as f:
+            s = f.read()
+            s=s.replace("$url",url)
+            s=s.replace("$id", random_string)
+            post_data['sadrzaj'] = s
+        x = requests.post("http://whois-emailer.geasoft.net", data = json.dumps(post_data), headers= {"Content-Type":"application/json"})
+        
         con.commit()
         return True
+    
 
     def subscribe(self, url, email, token):
         if email is None:

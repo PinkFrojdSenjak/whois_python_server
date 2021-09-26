@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_restful import Resource, Api, reqparse
 from call_whois import Whois
 from dig import dns
@@ -7,10 +7,13 @@ from firebase_admin import messaging
 import os
 from notification_database import Notifications
 from expired_domain import check_domains, check_domains_mock
+from flask import Response
 
-with open("privateKeyPath.txt", "r") as f:
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]='/home/djinpa/Downloads/firebaseAdminPK.json'
+
+'''with open("privateKeyPath.txt", "r") as f:
     path = f.read()
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=path
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=path'''
 app = Flask(__name__)
 api = Api(app)
 default_app = firebase_admin.initialize_app()
@@ -46,7 +49,7 @@ class UnsubscribeEmail(Resource):
     def get(self):
         id = request.args.get('id')
         nots.unsubscribe_email(id)
-        return "Uspesno ste se odjavili.", 200
+        return Response("<h1> Uspešno ste se odjavili.", mimetype='text/html')
 class ChangeToken(Resource):
     def get(self):
         old = request.args.get('old')
