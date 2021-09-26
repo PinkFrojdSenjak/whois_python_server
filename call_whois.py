@@ -2,9 +2,12 @@ import subprocess
 import re
 from hyperparameters import get_synonims, get_registry
 
+registry = get_registry()
 class Whois:
     def __init__(self, url) -> None:
         self.url = url
+        args = self.url.split('.')
+        self.domain = '.' + args[-1]
         self.command = 'whois'
         self._irrelevant_keys = ['notice', 'terms of use']
 
@@ -62,16 +65,14 @@ class Whois:
         return self._process([self.command, '-h', service, self.url])
 
     def _process_com(self) -> str:
-        service = 'whois.verisign-grs.com'
-        return self._process([self.command, '-h', service, self.url])
+        return self._process([self.command, self.url])
 
     def _process_kom(self) -> str:
         service = 'whois.nic.ком'
         return self._process([self.command, '-h', service, self.url])
 
     def _process_net(self) -> str:
-        service = 'whois.verisign-grs.com'
-        return self._process([self.command, '-h', service, self.url])
+        return self._process([self.command, self.url])
 
     def _process_uk(self) -> str:
         service = 'whois.nic.uk'
@@ -90,7 +91,7 @@ class Whois:
         val = val.lstrip().rstrip()
         return key, val
 
-    def _clean_dict_with_synonims(self, dic: dict, raw: str) -> dict:
+    def _clean_dict_with_synonims(self, dic: dict) -> dict:
         """
         This method takes the unsorted dictionary and check to see if there are known synonims 
         for some of the most important fields and also places first 
@@ -107,9 +108,10 @@ class Whois:
                     break
             if not found_synonim: 
                 non_synonim_fields[key] = dic[key]
+        
+        clean_dic['Registry'] = registry[self.domain]
 
-        for key in non_synonim_fields.keys():
-            clean_dic[key] = non_synonim_fields[key]
+        clean_dic.update(non_synonim_fields)
         return clean_dic
 
     def extract_dict(self, s: str) -> dict:
@@ -135,7 +137,7 @@ class Whois:
                     dic[key] = val
             
                            
-        return self._clean_dict_with_synonims(dic, raw)
+        return self._clean_dict_with_synonims(dic)
 
     def _no_match(self, s: str) -> bool:
         if 'no match' in s.lower():
@@ -151,16 +153,18 @@ class Whois:
             return None
         if self._no_match(whois_return_string):
             return None
-        return self.extract_dict(whois_return_string)
+        if self.domain in ['com', 'uk', 'net']:
+
+         #self.extract_dict(whois_return_string)
 
 if __name__ == '__main__':
-    url = 'google.se'
+    url = 'youtube.com'
     whois = Whois(url)
     res = whois.choose_service()
     dictionary = whois.extract_dict(res)
     temp = whois.get_data()
     print(dictionary)
 
-    f = open('se.txt', 'w')
+    f = open('com.txt', 'w')
     f.write(res)
     f.close()

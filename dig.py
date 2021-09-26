@@ -7,9 +7,14 @@ def clean_data(s: str) -> str:
     for line in lines:
         if line and line[0] != ';':
             clean_lines.append(line)
-    
-    answer = clean_lines[-1].split(maxsplit = 4)
-    return answer[-1]
+    if len(clean_lines) == 1:
+        answer = clean_lines[0].split(maxsplit = 4)
+        return answer[-1].lstrip().rstrip()
+    else:
+        answer = clean_lines[1:]
+        answer = [x.split(maxsplit = 4) for x in answer]
+        return [x[-1].lstrip().rstrip() for x in answer]
+
     
 
 def dns(url):
@@ -26,10 +31,10 @@ def dns(url):
     ns, err = p.communicate()
     ns = clean_data(ns)
     data = {
-        'a':a.rstrip(),
-        'aaaa': aaaa.rstrip(),
-        'mx': mx.rstrip(),
-        'ns':ns.rstrip()
+        'a':a,
+        'aaaa': aaaa,
+        'mx': mx,
+        'ns':ns
     }
     return data
 

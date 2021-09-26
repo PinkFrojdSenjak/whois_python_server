@@ -1,5 +1,5 @@
 import re
-
+import json
 
 def get_synonims() -> dict:
     return {
@@ -11,6 +11,7 @@ def get_synonims() -> dict:
     }
 
 def get_registry() -> dict:
-    return {
+    with open('registry.json') as f:
+        return json.load(f)
         
-    }
+    
