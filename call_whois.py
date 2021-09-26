@@ -122,7 +122,7 @@ class Whois:
                 prefix = 'Administrative '
             elif key.lower() == 'technical contact':
                 prefix = 'Technical '
-            if key in ['Adress', 'Postal Code', 'ID Number', 'Tax ID']:
+            if key in ['Address', 'Postal Code', 'ID Number', 'Tax ID']:
                 key = prefix + key
             if len(key.split()) <= 3 and key.lower() not in self._irrelevant_keys:
                 dic[key] = val
