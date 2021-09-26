@@ -16,74 +16,10 @@ class Whois:
         output, err = p.communicate()
         return output
 
-    def choose_service(self) -> str:
-        if re.findall(r'.rs', self.url) or re.findall(r'.срб', self.url):
-            return self._process_serbian()
-
-        elif re.findall(r'.ru', self.url) or re.findall(r'.рф', self.url):
-            return self._process_russian()
-
-        elif re.findall(r'.mk', self.url) or re.findall(r'.мкд', self.url):
-            return self._process_makedonian()
-
-        elif re.findall(r'.org', self.url) or re.findall(r'.opr', self.url):
-            return self._process_org_opr()
-
-        elif re.findall(r'.com', self.url):
-            return self._process_com()
-
-        elif re.findall(r'.ком', self.url): 
-            return self._process_kom()
-        
-        elif re.findall(r'.net', self.url):
-            return self._process_net()
-
-        elif re.findall(r'.uk', self.url):
-            return self._process_uk()
-
-        elif re.findall(r'.se', self.url):
-            return self._process_se()
-        
-        else:
-            return self._process_unknown()
-            
-
-    def _process_serbian(self) -> str:
-        service = 'whois.rnids.rs'
-        return self._process([self.command, '-h', service, self.url])
-
-    def _process_russian(self) -> str:
-        service = 'whois.tcinet.ru'
-        return self._process([self.command, '-h', service, self.url])
-    
-    def _process_makedonian(self) -> str:
-        service = 'whois.marnet.mk'
-        return self._process([self.command, '-h', service, self.url])
-
-    def _process_org_opr(self) -> str:
-        service = 'whois.publicinterestregistry.net'
-        return self._process([self.command, '-h', service, self.url])
-
-    def _process_com(self) -> str:
-        return self._process([self.command, self.url])
-
-    def _process_kom(self) -> str:
-        service = 'whois.nic.ком'
-        return self._process([self.command, '-h', service, self.url])
-
-    def _process_net(self) -> str:
-        return self._process([self.command, self.url])
-
-    def _process_uk(self) -> str:
-        service = 'whois.nic.uk'
-        return self._process([self.command, '-h', service, self.url])
-
-    def _process_se(self) -> str:
-        service = 'whois.iis.se'
-        return self._process([self.command, '-h', service, self.url])
-
-    def _process_unknown(self):
-        return self._process([self.command, self.url])
+    def get_raw(self) -> str:
+        p = subprocess.Popen([self.command, self.url], stdout= subprocess.PIPE, text = True)
+        output, err = p.communicate()
+        return output
 
     def _get_dict(self, line: str) -> tuple:
         key, val = line.split(': ', maxsplit = 1)
@@ -148,14 +84,38 @@ class Whois:
         """
         This method returns all Whois data for the given url
         """
-        whois_return_string = self.choose_service()
+        whois_return_string = self.get_raw()
         if whois_return_string is None:
             return None
         if self._no_match(whois_return_string):
             return None
-        if self.domain in ['com', 'uk', 'net']:
+        
+        d = self.extract_dict(whois_return_string)
+        d = self.process_foreign(d)
+        
+        return d
 
-         #self.extract_dict(whois_return_string)
+    def process_foreign(self, dic: dict) -> dict:
+        nested_fields = {
+            'Registrant':{},
+            'Admin':{},
+            'Tech':{}
+        }
+        keys_for_deleting = []
+        for f in nested_fields:
+            for key in dic.keys():
+                if f in key and f != key:
+                    shortened_key = key.split()[-1]
+                    nested_fields[f][shortened_key] = dic[key]
+                    keys_for_deleting.append(key)
+                elif f == key:
+                    nested_fields[f][key] = dic[key]
+        for key in keys_for_deleting:
+            del dic[key]
+
+        dic.update(nested_fields)
+        return dic
+
 
 if __name__ == '__main__':
     url = 'youtube.com'
