@@ -9,11 +9,10 @@ from notification_database import Notifications
 from expired_domain import check_domains, check_domains_mock
 from flask import Response
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]='/home/djinpa/Downloads/firebaseAdminPK.json'
-
-'''with open("privateKeyPath.txt", "r") as f:
+with open("privateKeyPath.txt", "r") as f:
     path = f.read()
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=path'''
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"]=path
+
 app = Flask(__name__)
 api = Api(app)
 default_app = firebase_admin.initialize_app()

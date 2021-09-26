@@ -59,7 +59,10 @@ def send_notifications(data, t):
             data=message_info,
             token=token,
             )
-        messaging.send(message)
+        try:
+            messaging.send(message)
+        except:
+            print("Greska FCM", data["Domain Name"])        
 
 def check_domains(threshold = [0,1,3,7,10]):
     urls = get_domains()
