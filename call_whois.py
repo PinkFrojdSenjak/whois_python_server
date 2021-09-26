@@ -1,6 +1,6 @@
 import subprocess
 import re
-from variable_synonims import get_synonims
+from hyperparameters import get_synonims, get_registry
 
 class Whois:
     def __init__(self, url) -> None:
@@ -40,8 +40,10 @@ class Whois:
 
         elif re.findall(r'.se', self.url):
             return self._process_se()
+        
         else:
-            return None
+            return self._process_unknown()
+            
 
     def _process_serbian(self) -> str:
         service = 'whois.rnids.rs'
@@ -79,13 +81,16 @@ class Whois:
         service = 'whois.iis.se'
         return self._process([self.command, '-h', service, self.url])
 
+    def _process_unknown(self):
+        return self._process([self.command, self.url])
+
     def _get_dict(self, line: str) -> tuple:
         key, val = line.split(': ', maxsplit = 1)
         key = key.lstrip().rstrip()
         val = val.lstrip().rstrip()
         return key, val
 
-    def _clean_dict_with_synonims(self, dic: dict) -> dict:
+    def _clean_dict_with_synonims(self, dic: dict, raw: str) -> dict:
         """
         This method takes the unsorted dictionary and check to see if there are known synonims 
         for some of the most important fields and also places first 
@@ -108,8 +113,10 @@ class Whois:
         return clean_dic
 
     def extract_dict(self, s: str) -> dict:
+        raw = s
         s = s.replace(':\n ', ': ')
         s = s.replace('Relevant dates:', '')
+        s = s.replace('\t', ' ')
         lines = s.splitlines()
         # remove empty lines and lines that start with %
         temp = []
@@ -128,7 +135,7 @@ class Whois:
                     dic[key] = val
             
                            
-        return self._clean_dict_with_synonims(dic)
+        return self._clean_dict_with_synonims(dic, raw)
 
     def _no_match(self, s: str) -> bool:
         if 'no match' in s.lower():
@@ -147,13 +154,13 @@ class Whois:
         return self.extract_dict(whois_return_string)
 
 if __name__ == '__main__':
-    url = 'google.uk'
+    url = 'google.se'
     whois = Whois(url)
     res = whois.choose_service()
     dictionary = whois.extract_dict(res)
     temp = whois.get_data()
     print(dictionary)
 
-    f = open('com.txt', 'w')
+    f = open('se.txt', 'w')
     f.write(res)
     f.close()
