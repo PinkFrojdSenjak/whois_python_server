@@ -2,7 +2,7 @@ import subprocess
 import re
 from hyperparameters import get_synonims, get_registry
 import dateparser
-
+import datetime
 registry = get_registry()
 class Whois:
     def __init__(self, url) -> None:
@@ -43,7 +43,7 @@ class Whois:
                     if important_field == 'Domain Name':
                         clean_dic[important_field] = self.url
                     elif important_field == 'Registration Date' or important_field == 'Expiration Date':
-                        clean_dic[important_field] = str(dateparser.parse(dic[key]))
+                        clean_dic[important_field] = str(dateparser.parse(dic[key]).replace(tzinfo=None))
                     else:
                         clean_dic[important_field] = dic[key]
                     
@@ -130,6 +130,10 @@ class Whois:
         except:
             pass
         d['status'] = 'active'
+        try:
+            d['Expires in'] = (dateparser.parse(d['Expiration Date']) - datetime.datetime.today().replace(tzinfo=None)).days
+        except:
+            d['Expires in'] = 0
         return d
 
     def process_that_ours(self, lines: list) -> dict:

@@ -6,6 +6,7 @@ import firebase_admin
 from firebase_admin import messaging
 import os
 from notification_database import Notifications
+from expired_domain import check_domains, check_domains_mock
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/djinpa/Downloads/firebaseAdminPK.json"
 app = Flask(__name__)
@@ -19,16 +20,6 @@ class Data(Resource):
         data = whois.get_data()
         dns_data = dns(url)
         data['dns'] = dns_data
-        
-         
-        message = messaging.Message(
-        data={
-            'score': '850',
-            'time': '2:45',
-        },
-        token='fqGclyYvQ2a3l_GYxWCCRA:APA91bGJKJYBJao4QAoV7LFIlMG9duOwkguJK48K_vdK1sifKezq_5KXMOJ4ABG9qxXOBMpOvNR7QZRQy9QEP_IJ6U9TWIt8vpMsrO8zWZu6OK3a7mllNHQsLSglbcuJYrNyYzi6FVxS',
-        )
-        messaging.send(message)
 
         if data is None or not data:
             return {}, 404
@@ -59,11 +50,17 @@ class ChangeToken(Resource):
         new = request.args.get('new')
         nots.change_token(old, new)
 
+class SendAll(Resource):
+    def get(self):
+        check_domains_mock()
+
+
 api.add_resource(Data, '/data')
 api.add_resource(Subscribe, '/subscribe')
 api.add_resource(UnsubscribePush, '/unsubscribe-push')
 api.add_resource(UnsubscribeEmail, '/unsubscribe-email')
 api.add_resource(ChangeToken, '/change-token')
+api.add_resource(SendAll, '/send-all')
 
 if __name__ == '__main__':
     print(default_app.name)
