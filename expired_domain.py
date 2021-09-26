@@ -3,6 +3,8 @@ import sqlite3
 from call_whois import Whois
 import firebase_admin
 from firebase_admin import messaging
+import requests
+import json
 
 con = sqlite3.connect('notifications.db', check_same_thread=False)
 curr = con.cursor()
@@ -18,9 +20,30 @@ def send_notifications(data, t):
     rows = curr.fetchall()
     emails = [x[0] for x in rows]
 
+    for email in emails:
+        post_data = {
+            "salje": {
+                "adresa": "whoishakaton@geasoft.net",
+                "ime": "Ko.Je Domen Alarm"
+            },
+            "prima": [{
+                "adresa": email,
+                "ime": "" 
+            }],
+            "naslov": f"Alarm za domen {data['Domain Name']}",
+            "sadrzaj": f"Domen istice za {t} dana."
+            }
+        if t == 0:
+            post_data['sadrzaj'] = 'Domen je istekao!'
+
+
+        x = requests.post("http://whois-emailer.geasoft.net", data = json.dumps(post_data), headers= {"Content-Type":"application/json"})
+        
+        
     curr.execute('SELECT DISTINCT token FROM Subscriptions WHERE url = ? AND token IS NOT NULL', (data['Domain Name'], ))
     rows = curr.fetchall()
     tokens = [x[0] for x in rows]
+
     for token in tokens:
         message_info = {
                 "title":f"Alarm za domen {data['Domain Name']}",

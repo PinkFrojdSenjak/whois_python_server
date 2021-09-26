@@ -8,6 +8,7 @@ import os
 from notification_database import Notifications
 from expired_domain import check_domains, check_domains_mock
 
+
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="/home/djinpa/Downloads/firebaseAdminPK.json"
 app = Flask(__name__)
 api = Api(app)
@@ -44,6 +45,7 @@ class UnsubscribeEmail(Resource):
     def get(self):
         id = request.args.get('id')
         nots.unsubscribe_email(id)
+        return "Uspesno ste se odjavili.", 200
 class ChangeToken(Resource):
     def get(self):
         old = request.args.get('old')
