@@ -35,7 +35,7 @@ def send_notifications(data, t):
             "sadrzaj": f"Domen istice za {t} dana."
             }
         #if t == 0:
-        with open('email.txt', 'r') as f:
+        with open('email.html', 'r') as f:
             s = f.read()
             s=s.replace("$url",data['Domain Name'])
             s=s.replace("$dana",str(t))
