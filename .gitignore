@@ -17,6 +17,9 @@ bin-release/
 #Folders
 myenv
 
+#DBs
+*.db
+
 #cache
 __pycache__
 *.pyc

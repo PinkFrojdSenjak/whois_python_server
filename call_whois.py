@@ -1,6 +1,7 @@
 import subprocess
 import re
 from hyperparameters import get_synonims, get_registry
+import dateparser
 
 registry = get_registry()
 class Whois:
@@ -39,7 +40,13 @@ class Whois:
             found_synonim = False
             for important_field in synonims.keys():
                 if key.lower() in synonims[important_field]:
-                    clean_dic[important_field] = dic[key]
+                    if important_field == 'Domain Name':
+                        clean_dic[important_field] = self.url
+                    elif important_field == 'Registration Date' or important_field == 'Expiration Date':
+                        clean_dic[important_field] = str(dateparser.parse(dic[key]))
+                    else:
+                        clean_dic[important_field] = dic[key]
+                    
                     found_synonim = True
                     break
             if not found_synonim: 
@@ -88,7 +95,12 @@ class Whois:
         return self._clean_dict_with_synonims(dic)
 
     def _no_match(self, s: str) -> bool:
-        if 'no match' in s.lower():
+        if 'no match' in s.lower() or 'not registered' in s.lower():
+            return True
+        return False
+
+    def _not_domain(self, s: str) -> bool:
+        if 'no whois server' in s.lower():
             return True
         return False
 
@@ -100,7 +112,16 @@ class Whois:
         if whois_return_string is None:
             return None
         if self._no_match(whois_return_string):
-            return None
+            return {
+                'url':self.url,
+                'status':'free'
+                }
+        elif self._not_domain(whois_return_string):
+            return {
+                'url':self.url,
+                'status':'unknown'
+                }
+
         
         d = self.extract_dict(whois_return_string)
         d = self.process_foreign(d)
@@ -108,7 +129,7 @@ class Whois:
             d['Registrant Name'] = d['Registrant']['Registrant']
         except:
             pass
-
+        d['status'] = 'active'
         return d
 
     def process_that_ours(self, lines: list) -> dict:

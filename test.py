@@ -1,2 +1,3 @@
-a = ['prvi', 'drugi']
-print(str(a))
+import datetime
+import dateparser
+
