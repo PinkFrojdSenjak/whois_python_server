@@ -16,11 +16,12 @@ def get_domains():
     return urls
 
 def send_notifications(data, t):
-    curr.execute('SELECT DISTINCT email FROM Subscriptions WHERE url = ? AND email IS NOT NULL', (data['Domain Name'], ))
+    curr.execute('SELECT DISTINCT email,id FROM Subscriptions WHERE url = ? AND email IS NOT NULL', (data['Domain Name'], ))
     rows = curr.fetchall()
-    emails = [x[0] for x in rows]
+    #emails = [x[0] for x in rows]
 
-    for email in emails:
+    for email,id in rows:
+        print(email,id)
         post_data = {
             "salje": {
                 "adresa": "whoishakaton@geasoft.net",
@@ -33,10 +34,13 @@ def send_notifications(data, t):
             "naslov": f"Alarm za domen {data['Domain Name']}",
             "sadrzaj": f"Domen istice za {t} dana."
             }
-        if t == 0:
-            post_data['sadrzaj'] = 'Domen je istekao!'
-
-
+        #if t == 0:
+        with open('email.txt', 'r') as f:
+            s = f.read()
+            s=s.replace("$url",data['Domain Name'])
+            s=s.replace("$dana",str(t))
+            s=s.replace("$id", id)
+            post_data['sadrzaj'] = s
         x = requests.post("http://whois-emailer.geasoft.net", data = json.dumps(post_data), headers= {"Content-Type":"application/json"})
         
         
