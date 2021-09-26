@@ -126,7 +126,7 @@ class Whois:
                 key = prefix + key
             if len(key.split()) <= 3 and key.lower() not in self._irrelevant_keys:
                 dic[key] = val
-        return dic
+        return self._clean_dict_with_synonims(dic)
         
 
     def process_foreign(self, dic: dict) -> dict:
