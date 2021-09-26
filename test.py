@@ -1,5 +1,2 @@
-import whois
-
-w = whois.whois('rts.rs')
-
-pass
+a = ['prvi', 'drugi']
+print(str(a))

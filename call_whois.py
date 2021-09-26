@@ -46,9 +46,10 @@ class Whois:
                 non_synonim_fields[key] = dic[key]
         
         clean_dic['Registry'] = registry[self.domain]
-
+        clean_dic['Registrant Name'] = ''
         clean_dic.update(non_synonim_fields)
         return clean_dic
+
 
     def extract_dict(self, s: str) -> dict:
         raw = s
@@ -65,13 +66,24 @@ class Whois:
         temp = []
         # get only relevant data
         dic = {}
+        
+        reg = False
+        adm = False
+        tec = False
         for i, line in enumerate(lines):
             if ': ' in line:
-                key, val = self._get_dict(line) 
+                key, val = self._get_dict(line)
+                if key.lower() == 'registrant':
+                    reg = True
+                if key.lower() == 'administrative contact':
+                    adm = True
+                if key.lower() == 'technical contact':
+                    tec = True
                 # only valid keys are maximum 3 words 
                 if len(key.split()) <= 3 and key.lower() not in self._irrelevant_keys:
                     dic[key] = val
-            
+        if reg and adm and tec:
+            return self.process_that_ours(lines)
                            
         return self._clean_dict_with_synonims(dic)
 
@@ -92,8 +104,30 @@ class Whois:
         
         d = self.extract_dict(whois_return_string)
         d = self.process_foreign(d)
-        
+        try:
+            d['Registrant Name'] = d['Registrant']['Registrant']
+        except:
+            pass
+
         return d
+
+    def process_that_ours(self, lines: list) -> dict:
+        prefix = ''
+        dic = {}
+        for i, line in enumerate(lines):
+            key, val = self._get_dict(line)
+            if key.lower() == 'registrant':
+                prefix = 'Registrant '
+            elif key.lower() == 'administrative contact':
+                prefix = 'Administrative '
+            elif key.lower() == 'technical contact':
+                prefix = 'Technical '
+            if key in ['Adress', 'Postal Code', 'ID Number', 'Tax ID']:
+                key = prefix + key
+            if len(key.split()) <= 3 and key.lower() not in self._irrelevant_keys:
+                dic[key] = val
+        return dic
+        
 
     def process_foreign(self, dic: dict) -> dict:
         nested_fields = {
@@ -104,8 +138,11 @@ class Whois:
         keys_for_deleting = []
         for f in nested_fields:
             for key in dic.keys():
-                if f in key and f != key:
-                    shortened_key = key.split()[-1]
+                if f in key and f != key and key != 'Registrant Name':
+                    try:
+                        shortened_key = ' '.join(key.split()[1:])
+                    except:
+                        shortened_key = key.split()[-1]
                     nested_fields[f][shortened_key] = dic[key]
                     keys_for_deleting.append(key)
                 elif f == key:
