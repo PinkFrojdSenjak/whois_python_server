@@ -18,7 +18,7 @@ bin-release/
 myenv
 
 #DBs
-*.db
+temp.db
 
 #cache
 __pycache__
