@@ -10,8 +10,6 @@ api = Api(app)
 class Data(Resource):
     def get(self):
         url = request.args.get('url')
-        args = url.split('.')
-        domain = '.' + args[-1]
         whois = Whois(url = url)
         data = whois.get_data()
         dns_data = dns(url)
