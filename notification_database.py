@@ -64,7 +64,6 @@ class Notifications:
             "naslov": f"Alarm za domen {url} uspesno aktiviran",
             "sadrzaj": ""
             }
-        #if t == 0:
         with open('email2.html', 'r') as f:
             s = f.read()
             s=s.replace("$url",url)
@@ -98,4 +97,4 @@ if __name__ == "__main__":
     temo_con = sqlite3.connect('temp.db')
     temp_curr = temo_con.cursor()
     temp_curr.execute('SELECT COUNT( *) FROM Notifications')
-    print(temp_curr.fetchall())
+    print(temp_curr.fetchall()) 
